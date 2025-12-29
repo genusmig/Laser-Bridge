@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function Dashboard() {
   const grbl = useGrbl();
   const { toast } = useToast();
-  const [connectUrl, setConnectUrl] = useState("ws://localhost:8080");
+  const [connectUrl, setConnectUrl] = useState("ws://localhost:5000/ws");
 
   const handleConnection = () => {
     if (grbl.isConnected) {

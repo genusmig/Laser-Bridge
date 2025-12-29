@@ -19,7 +19,7 @@ export interface GrblState {
 }
 
 export function useGrbl() {
-  const [url, setUrl] = useState<string>("ws://localhost:8080");
+  const [url, setUrl] = useState<string>("ws://localhost:5000/ws");
   const [isConnected, setIsConnected] = useState(false);
   const [state, setState] = useState<GrblState>({
     status: "Disconnected",
