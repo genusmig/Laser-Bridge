@@ -1,38 +1,40 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { db } from "./db";
+import {
+  macros,
+  type Macro,
+  type InsertMacro,
+  type UpdateMacroRequest
+} from "@shared/schema";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getMacros(): Promise<Macro[]>;
+  createMacro(macro: InsertMacro): Promise<Macro>;
+  updateMacro(id: number, updates: UpdateMacroRequest): Promise<Macro>;
+  deleteMacro(id: number): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async getMacros(): Promise<Macro[]> {
+    return await db.select().from(macros);
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async createMacro(insertMacro: InsertMacro): Promise<Macro> {
+    const [macro] = await db.insert(macros).values(insertMacro).returning();
+    return macro;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async updateMacro(id: number, updates: UpdateMacroRequest): Promise<Macro> {
+    const [updated] = await db.update(macros)
+      .set(updates)
+      .where(eq(macros.id, id))
+      .returning();
+    return updated;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async deleteMacro(id: number): Promise<void> {
+    await db.delete(macros).where(eq(macros.id, id));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
